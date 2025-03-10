@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,48 +7,53 @@ import {
   SafeAreaView,
   StyleSheet,
   Platform,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { useNavigation, useRoute } from '@react-navigation/native';
+  KeyboardAvoidingView,
+  Keyboard,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-// Define currency data with base64 encoded flags for Expo compatibility
 export const currencies = [
   {
-    id: 'eur',
-    name: 'Euro',
-    code: 'EUR',
-    symbol: '€',
-    // In a real app, you would use require('./assets/flags/eu.png')
-    // For this example, we'll use a placeholder approach
-    flagColor: '#0052B4', // EU blue
+    id: "eur",
+    name: "Euro",
+    code: "EUR",
+    symbol: "€",
+    flag: require("@/assets/flags/eu.png"), // EU blue
   },
   {
-    id: 'usd',
-    name: 'Dólar Estadounidense',
-    code: 'USD',
-    symbol: '$',
-    flagColor: '#BD3D44', // US red
+    id: "usd",
+    name: "Dólar Estadounidense",
+    code: "USD",
+    symbol: "$",
+    flag: require("@/assets/flags/us.png"), // US blue
   },
   {
-    id: 'gbp',
-    name: 'Libra Esterlina',
-    code: 'GBP',
-    symbol: '£',
-    flagColor: '#012169', // UK blue
+    id: "gbp",
+    name: "Libra Esterlina",
+    code: "GBP",
+    symbol: "£",
+    flag: require("@/assets/flags/gs.png"), // UK blue
   },
 ];
 
 const PaymentScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const amountInputRef = useRef(null);
 
-  // Get the selected currency from route params or use USD as default
-  const [selectedCurrencyId, setSelectedCurrencyId] = useState('usd');
-  const [amount, setAmount] = useState('0.00');
-  const [description, setDescription] = useState('');
+  // Estados existentes
+  const [selectedCurrencyId, setSelectedCurrencyId] = useState("eur");
+  const [amount, setAmount] = useState("0,00");
+  const [description, setDescription] = useState("");
+  const [amountFocused, setAmountFocused] = useState(false);
+  const [charCount, setCharCount] = useState(0);
+  const [showCursor, setShowCursor] = useState(false);
+  const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
+  const [inputHeight, setInputHeight] = useState(40); // Estado para rastrear la altura del campo de entrada
 
   // Find the current currency object
-  const selectedCurrency = currencies.find(c => c.id === selectedCurrencyId) || currencies[1]; // Default to USD
+  const selectedCurrency = currencies.find((c) => c.id === selectedCurrencyId) || currencies[0]; // Default to EUR
 
   // Update currency when returning from selection screen
   useEffect(() => {
@@ -57,207 +62,216 @@ const PaymentScreen = () => {
     }
   }, [route.params?.selectedCurrencyId]);
 
-  const handleNumberPress = (num) => {
-    // Remove leading zero if it's the first digit
-    if (amount === '0.00') {
-      setAmount(num + '.00');
-      return;
+  // Manejar cambios en el monto
+  const handleAmountChange = (text) => {
+    // Eliminar caracteres no numéricos
+    const numericValue = text.replace(/[^0-9]/g, "");
+
+    if (numericValue === "") {
+      setAmount("0,00");
+      setShowCursor(false);
+    } else {
+      // Formatear como número con dos decimales y coma como separador decimal
+      const value = Number.parseInt(numericValue) / 100;
+      const formattedValue = value.toFixed(2).replace(".", ",");
+      setAmount(formattedValue);
+      setShowCursor(false);
     }
-
-    // Split the amount into whole and decimal parts
-    const parts = amount.split('.');
-    const wholePart = parts[0];
-
-    // Update the whole part (before decimal)
-    const newWholePart = wholePart + num;
-    setAmount(newWholePart + '.00');
   };
 
-  const handleDeletePress = () => {
-    if (amount === '0.00' || amount.length === 1) {
-      setAmount('0.00');
-      return;
-    }
-
-    // Remove the last digit from the whole part
-    const parts = amount.split('.');
-    const wholePart = parts[0];
-    const newWholePart = wholePart.slice(0, -1);
-
-    if (newWholePart === '') {
-      setAmount('0.00');
-    } else {
-      setAmount(newWholePart + '.00');
+  // Manejar cambios en la descripción
+  const handleDescriptionChange = (text) => {
+    // Limitar a 140 caracteres
+    if (text.length <= 140) {
+      setDescription(text);
+      setCharCount(text.length);
     }
   };
 
   const openCurrencySelector = () => {
-    navigation.navigate('CurrencySelection', {
+    // Ocultar el teclado antes de navegar
+    Keyboard.dismiss();
+    navigation.navigate("CurrencySelection", {
       currentCurrencyId: selectedCurrencyId,
     });
   };
 
+  // Función para enfocar el campo de monto
+  const focusAmountInput = () => {
+    if (amountInputRef.current) {
+      amountInputRef.current.focus();
+      if (amount === "0,00") {
+        setShowCursor(true);
+        setAmount("");
+      }
+    }
+  };
+
+  // Determinar si el monto es diferente de 0,00
+  const isAmountNonZero = amount !== "0,00" && amount !== "";
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Crear pago</Text>
-        <TouchableOpacity
-          style={styles.currencySelector}
-          onPress={openCurrencySelector}
-        >
-          <Text style={styles.currencyText}>{selectedCurrency.code}</Text>
-          <Text style={styles.dropdownIcon}>▼</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Importe a pagar</Text>
+          <TouchableOpacity style={styles.currencySelector} onPress={openCurrencySelector}>
+            <Text style={styles.currencyText}>{selectedCurrency.code}</Text>
+            <Text style={styles.dropdownIcon}>▼</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Amount Display */}
+        <TouchableOpacity style={styles.amountContainer} onPress={focusAmountInput} activeOpacity={0.8}>
+          {showCursor ? (
+            <View style={styles.amountWrapper}>
+              <Text style={[styles.amountText, styles.amountTextFocused]}>|€</Text>
+            </View>
+          ) : (
+            <Text style={[styles.amountText, (amountFocused || isAmountNonZero) && styles.amountTextFocused]}>
+              {amount}€
+            </Text>
+          )}
+          <TextInput
+            ref={amountInputRef}
+            style={styles.hiddenInput}
+            keyboardType="number-pad"
+            value={amount === "0,00" ? "" : amount}
+            onChangeText={handleAmountChange}
+            caretHidden={true}
+            onFocus={() => {
+              setAmountFocused(true);
+              if (amount === "0,00") {
+                setShowCursor(true);
+                setAmount("");
+              }
+            }}
+            onBlur={() => {
+              setAmountFocused(false);
+              setShowCursor(false);
+              if (amount === "") {
+                setAmount("0,00");
+              }
+            }}
+          />
         </TouchableOpacity>
-      </View>
 
-      <View style={styles.divider} />
-
-      {/* Amount Display */}
-      <View style={styles.amountContainer}>
-        <Text style={styles.amountText}>{selectedCurrency.symbol} {amount}</Text>
-      </View>
-
-      {/* Description Field */}
-      <View style={styles.conceptContainer}>
-        <Text style={styles.conceptLabel}>Concepto</Text>
-        <TextInput
-          style={styles.conceptInput}
-          placeholder="Añade descripción del pago"
-          placeholderTextColor="#9EA3AE"
-          value={description}
-          onChangeText={setDescription}
-        />
-      </View>
-
-      {/* Continue Button */}
-      <TouchableOpacity
-        style={styles.continueButton}
-        onPress={() => {
-          // Navigate to the payment share screen with the current amount and currency
-          navigation.navigate('PaymentShare', {
-            amount: amount,
-            currency: selectedCurrency,
-            description: description
-          });
-        }}
-      >
-        <Text style={styles.continueButtonText}>Continuar</Text>
-      </TouchableOpacity>
-      {/* Custom Keypad */}
-      <View style={styles.keypadContainer}>
-        <View style={styles.keypadRow}>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('1')}>
-            <Text style={styles.keypadNumber}>1</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('2')}>
-            <Text style={styles.keypadNumber}>2</Text>
-            <Text style={styles.keypadLetters}>ABC</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('3')}>
-            <Text style={styles.keypadNumber}>3</Text>
-            <Text style={styles.keypadLetters}>DEF</Text>
-          </TouchableOpacity>
+        {/* Description Field */}
+        <View style={styles.conceptContainer}>
+          <Text style={styles.conceptLabel}>Concepto</Text>
+          <TextInput
+            multiline={true} // Permitir múltiples líneas
+            style={[
+              styles.conceptInput,
+              { height: inputHeight }, // Ajustar la altura del campo de entrada
+              (description.length > 0 || isDescriptionFocused) && styles.conceptInputActive,
+            ]}
+            placeholder="Añade descripción del pago"
+            placeholderTextColor="#9EA3AE"
+            value={description}
+            onChangeText={handleDescriptionChange}
+            maxLength={140}
+            onFocus={() => setIsDescriptionFocused(true)}
+            onBlur={() => setIsDescriptionFocused(false)}
+            onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)} // Actualizar la altura del campo de entrada
+          />
+          <Text style={(description.length > 0 || isDescriptionFocused) ? styles.charCounter : [styles.charCounter, styles.none]}>{charCount}/140 caracteres</Text>
         </View>
 
-        <View style={styles.keypadRow}>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('4')}>
-            <Text style={styles.keypadNumber}>4</Text>
-            <Text style={styles.keypadLetters}>GHI</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('5')}>
-            <Text style={styles.keypadNumber}>5</Text>
-            <Text style={styles.keypadLetters}>JKL</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('6')}>
-            <Text style={styles.keypadNumber}>6</Text>
-            <Text style={styles.keypadLetters}>MNO</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.keypadRow}>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('7')}>
-            <Text style={styles.keypadNumber}>7</Text>
-            <Text style={styles.keypadLetters}>PQRS</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('8')}>
-            <Text style={styles.keypadNumber}>8</Text>
-            <Text style={styles.keypadLetters}>TUV</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('9')}>
-            <Text style={styles.keypadNumber}>9</Text>
-            <Text style={styles.keypadLetters}>WXYZ</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.keypadRow}>
-          <View style={styles.emptyKey} />
-          <TouchableOpacity style={styles.keypadButton} onPress={() => handleNumberPress('0')}>
-            <Text style={styles.keypadNumber}>0</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keypadButton} onPress={handleDeletePress}>
-            <Text style={styles.deleteIcon}>⌫</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Home Indicator */}
-      <View style={styles.homeIndicator} />
-    </SafeAreaView>
+        {/* Continue Button */}
+        <TouchableOpacity
+          style={[styles.continueButton, isAmountNonZero && styles.continueButtonActive]}
+          onPress={() => {
+            Keyboard.dismiss();
+            navigation.navigate("PaymentShare", {
+              amount: amount,
+              currency: selectedCurrency,
+              description: description,
+            });
+          }}
+        >
+          <Text style={[styles.continueButtonText, isAmountNonZero && styles.continueButtonTextActive]}>Continuar</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  none: {
+    opacity: 0,
+  },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "#ffffff",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    marginTop: Platform.OS === 'android' ? 30 : 0,
+    marginTop: Platform.OS === "android" ? 30 : 0,
+    position: "relative",
   },
   headerTitle: {
+    flex: 1,
+    textAlign: "center",
     fontSize: 22,
-    fontWeight: '600',
-    color: '#0A2463',
+    fontWeight: "600",
+    color: "#002859",
   },
   currencySelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F7FA',
+    position: "absolute",
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eff2f7",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   currencyText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#0A2463',
+    fontWeight: "500",
+    color: "#002859",
     marginRight: 5,
   },
   dropdownIcon: {
     fontSize: 12,
-    color: '#0A2463',
+    color: "#002859",
   },
   divider: {
     height: 1,
-    backgroundColor: '#E8ECF2',
+    backgroundColor: "#d3dce6",
   },
   amountContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 40,
+  },
+  amountWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   amountText: {
     fontSize: 60,
-    fontWeight: '300',
-    color: '#C5CFD9',
+    fontWeight: "300",
+    color: "#c0ccda",
+  },
+  amountTextFocused: {
+    color: "#0052b4",
+  },
+  hiddenInput: {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    opacity: 0,
   },
   conceptContainer: {
     paddingHorizontal: 20,
@@ -265,77 +279,48 @@ const styles = StyleSheet.create({
   },
   conceptLabel: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#0A2463',
+    fontWeight: "600",
+    color: "#002859",
     marginBottom: 10,
   },
   conceptInput: {
     borderWidth: 1,
-    borderColor: '#E8ECF2',
+    borderColor: "#d3dce6",
     borderRadius: 10,
     padding: 15,
     fontSize: 16,
-    color: '#0A2463',
+    color: "#002859",
+  },
+  conceptInputActive: {
+    borderColor: "#0052b4",
+  },
+  charCounter: {
+    textAlign: "right",
+    marginTop: 5,
+    color: "#647184",
+    fontSize: 14,
   },
   continueButton: {
-    backgroundColor: '#E6F0FF',
+    backgroundColor: "#eaf3ff",
     marginHorizontal: 20,
     paddingVertical: 16,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
+  continueButtonActive: {
+    backgroundColor: "#0052b4",
+  },
   continueButtonText: {
-    color: '#4D90FE',
+    color: "#0052b4",
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-  keypadContainer: {
-    backgroundColor: '#E8ECF2',
-    marginTop: 'auto',
-    paddingTop: 10,
-  },
-  keypadRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-    paddingHorizontal: 5,
-  },
-  keypadButton: {
-    flex: 1,
-    backgroundColor: 'white',
-    marginHorizontal: 5,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  keypadNumber: {
-    fontSize: 28,
-    fontWeight: '400',
-    color: '#000',
-  },
-  keypadLetters: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: -2,
-  },
-  deleteIcon: {
-    fontSize: 24,
-    color: '#000',
-  },
-  emptyKey: {
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  homeIndicator: {
-    width: 134,
-    height: 5,
-    backgroundColor: '#000',
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginVertical: 8,
+  continueButtonTextActive: {
+    color: "#ffffff",
   },
 });
 
 export default PaymentScreen;
+
+

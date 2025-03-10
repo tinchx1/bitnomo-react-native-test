@@ -10,31 +10,18 @@ import {
   Share,
   Clipboard,
   Alert,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import SuccessModal from './SuccessModal';
 
-// Default country (Spain)
+// Default country
 const defaultCountry = {
   id: 'es',
   name: 'España',
   code: '+34',
-};
-
-// For simplicity, we'll use a colored circle instead of actual flag image
-const CountryFlag = ({ countryId }) => {
-  const flagColors = {
-    es: '#FF0000', // Spain - red
-    gq: '#3A7728', // Equatorial Guinea - green
-    gr: '#0D5EAF', // Greece - blue
-    // Add more as needed
-  };
-
-  return (
-    <View style={[styles.flagCircle, { backgroundColor: flagColors[countryId] || '#CCCCCC' }]} />
-  );
 };
 
 const PaymentShareScreen = () => {
@@ -68,7 +55,7 @@ const PaymentShareScreen = () => {
   }, [route.params?.selectedCountry]);
 
   // Generate a random payment link
-  const paymentLink = `pay.bitnovo.com/${Math.random().toString(36).substring(2, 8)}`;
+  const paymentLink = `pay.bitnovo.com/59f9g9`;
 
   const copyToClipboard = () => {
     Clipboard.setString(paymentLink);
@@ -140,34 +127,50 @@ const PaymentShareScreen = () => {
       <StatusBar style="dark" />
 
       {/* Main Content */}
-      <View style={styles.card}>
+      <View style={styles.content}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <Ionicons name="cash-outline" size={24} color="#0066CC" />
+            <Image
+              source={require('@/assets/images/pending.png')}
+              style={styles.headerIcon}
+              resizeMode="contain"
+            />
           </View>
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>Solicitud de pago</Text>
             <Text style={styles.amount}>{amount} {currency.symbol}</Text>
           </View>
         </View>
-
         <Text style={styles.subtitle}>Comparte el enlace de pago con el cliente</Text>
+
 
         {/* Payment Link */}
         <View style={styles.linkContainer}>
           <TouchableOpacity style={styles.linkContent} onPress={copyToClipboard}>
-            <Ionicons name="link" size={20} color="#8E9AAB" style={styles.linkIcon} />
+            <Image
+              source={require('@/assets/images/link.png')}
+              style={styles.linkIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.linkText}>{paymentLink}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.qrButton}>
-            <Ionicons name="qr-code" size={24} color="white" />
+            <Image
+              source={require('@/assets/images/scan-barcode.png')}
+              style={styles.qrIcon}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         </View>
 
         {/* Email Option */}
         <TouchableOpacity style={styles.shareOption} onPress={shareViaEmail}>
           <View style={styles.shareIconContainer}>
-            <Ionicons name="mail" size={20} color="#8E9AAB" />
+            <Image
+              source={require('@/assets/images/email.png')}
+              style={styles.shareIcon}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.shareOptionText}>Enviar por correo electrónico</Text>
         </TouchableOpacity>
@@ -180,14 +183,18 @@ const PaymentShareScreen = () => {
                 style={styles.countrySelector}
                 onPress={openCountrySelector}
               >
-                <Ionicons name="logo-whatsapp" size={20} color="#8E9AAB" style={styles.whatsappIcon} />
+                <Image
+                  source={require('@/assets/images/wsp.png')}
+                  style={styles.shareIcon}
+                  resizeMode="contain"
+                />
                 <Text style={styles.countryCode}>{selectedCountry.code}</Text>
                 <Ionicons name="chevron-down" size={16} color="#8E9AAB" />
               </TouchableOpacity>
 
               <TextInput
                 style={styles.phoneInput}
-                placeholder="300 678 9087"
+                placeholder="200 5869 75423"
                 placeholderTextColor="#9EA3AE"
                 keyboardType="phone-pad"
                 value={phoneNumber}
@@ -202,7 +209,11 @@ const PaymentShareScreen = () => {
         ) : (
           <TouchableOpacity style={styles.shareOption} onPress={toggleWhatsAppInput}>
             <View style={styles.shareIconContainer}>
-              <Ionicons name="logo-whatsapp" size={20} color="#8E9AAB" />
+              <Image
+                source={require('@/assets/images/wsp.png')}
+                style={styles.shareIcon}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.shareOptionText}>Enviar a número de WhatsApp</Text>
           </TouchableOpacity>
@@ -211,7 +222,11 @@ const PaymentShareScreen = () => {
         {/* Share with other apps */}
         <TouchableOpacity style={styles.shareOption} onPress={shareWithOtherApps}>
           <View style={styles.shareIconContainer}>
-            <Ionicons name="share-outline" size={20} color="#8E9AAB" />
+            <Image
+              source={require('@/assets/images/export.png')}
+              style={styles.shareIcon}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.shareOptionText}>Compartir con otras aplicaciones</Text>
         </TouchableOpacity>
@@ -221,8 +236,12 @@ const PaymentShareScreen = () => {
       <View style={styles.bottomContainer}>
         <TouchableOpacity style={styles.newRequestButton} onPress={createNewRequest}>
           <Text style={styles.newRequestText}>Nueva solicitud</Text>
-          <View style={styles.plusIconContainer}>
-            <Ionicons name="add" size={20} color="white" />
+          <View>
+            <Image
+              source={require('@/assets/images/add-wallet.png')}
+              style={styles.shareIcon}
+              resizeMode="contain"
+            />
           </View>
         </TouchableOpacity>
       </View>
@@ -242,32 +261,29 @@ const PaymentShareScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  card: {
     backgroundColor: 'white',
-    margin: 16,
-    borderRadius: 16,
+  },
+  content: {
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   header: {
+    borderRadius: 12,
+    backgroundColor: '#F5F7FA',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
+    marginTop: 20,
   },
   iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    backgroundColor: '#E6F0FF',
+    width: 60,
+    height: 60,
+    marginRight: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+  },
+  headerIcon: {
+    width: 60,
+    height: 60,
   },
   headerTextContainer: {
     flex: 1,
@@ -278,9 +294,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   amount: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#002859',
+    color: '#0A2463',
   },
   subtitle: {
     fontSize: 16,
@@ -290,7 +306,7 @@ const styles = StyleSheet.create({
   linkContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   linkContent: {
     flex: 1,
@@ -299,23 +315,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E8ECF2',
     borderRadius: 8,
-    padding: 12,
-    marginRight: 8,
+    padding: 16,
+    marginRight: 12,
+    backgroundColor: 'white',
   },
   linkIcon: {
-    marginRight: 8,
+    width: 20,
+    height: 20,
+    marginRight: 12,
   },
   linkText: {
     fontSize: 16,
     color: '#0A2463',
   },
   qrButton: {
-    width: 50,
-    height: 50,
+    width: 54,
+    height: 54,
     borderRadius: 8,
     backgroundColor: '#0066CC',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  qrIcon: {
+    width: 24,
+    height: 24,
+    tintColor: 'white',
   },
   shareOption: {
     flexDirection: 'row',
@@ -325,15 +349,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
+    backgroundColor: 'white',
   },
   shareIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F5F7FA',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+  },
+  shareIcon: {
+    width: 20,
+    height: 20,
   },
   shareOptionText: {
     fontSize: 16,
@@ -345,6 +370,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
+    backgroundColor: 'white',
   },
   phoneInputRow: {
     flexDirection: 'row',
@@ -357,6 +383,7 @@ const styles = StyleSheet.create({
   },
   whatsappIcon: {
     marginRight: 8,
+    color: '#25D366',
   },
   countryCode: {
     fontSize: 16,
@@ -364,35 +391,27 @@ const styles = StyleSheet.create({
     color: '#0A2463',
     marginRight: 4,
   },
-  flagCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
-  },
   phoneInput: {
     flex: 1,
     fontSize: 16,
     color: '#0A2463',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8ECF2',
     paddingVertical: 4,
   },
   sendButton: {
     backgroundColor: '#0066CC',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: 6,
     marginLeft: 8,
   },
   sendButtonText: {
     color: 'white',
-    fontWeight: '500',
-    fontSize: 14,
+    // fontWeight: '500',
+    fontSize: 16,
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 40,
     left: 0,
     right: 0,
     alignItems: 'center',
