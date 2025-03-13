@@ -15,7 +15,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AppText from '@/components/ui/AppText';
 
-// Country data with flags, codes, and names
 const countries = [
   {
     id: 'es',
@@ -76,7 +75,6 @@ const CountrySelectionScreen = () => {
   const currentCountryId = route.params?.currentCountryId || 'es';
   const [hoveredCountry, setHoveredCountry] = useState(null);
 
-  // Filter countries based on search query
   const filteredCountries = searchQuery
     ? countries.filter(country =>
       country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,8 +86,8 @@ const CountrySelectionScreen = () => {
     console.log('Selected country:', country);
     console.log(route.params, "country.id");
     navigation.navigate("PaymentShare", {
-      ...route.params, // Mantiene los datos originales como amount, currency, etc.
-      currentCountryId: country.id, // Pasamos el país seleccionado
+      ...route.params, 
+      currentCountryId: country.id,
       showWhatsAppInput: true,
       selectedCountry: country,
     });
@@ -131,7 +129,6 @@ const CountrySelectionScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -144,7 +141,6 @@ const CountrySelectionScreen = () => {
         </View>
       </View>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#8E9AAB" style={styles.searchIcon} />
         <TextInput
@@ -153,11 +149,10 @@ const CountrySelectionScreen = () => {
           placeholderTextColor="#8E9AAB"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          selectionColor="#4D90FE" // Add blue cursor color
+          selectionColor="#4D90FE" 
         />
       </View>
 
-      {/* Country List */}
       <FlatList
         data={filteredCountries}
         renderItem={renderCountryItem}
@@ -182,8 +177,8 @@ const styles = StyleSheet.create({
   },
   headerTitleContainer: {
     flex: 1,
-    alignItems: 'center', // Center the title
-    marginRight: 40, // Offset for the back button to ensure true center
+    alignItems: 'center', 
+    marginRight: 40, 
   },
   backButton: {
     width: 40,
@@ -198,7 +193,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#0A2463',
-    textAlign: 'center', // Ensure text is centered
+    textAlign: 'center', 
   },
   searchContainer: {
     flexDirection: 'row',
@@ -217,7 +212,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#0A2463', // Darker text color for better visibility
+    color: '#0A2463',
   },
   listContainer: {
     paddingHorizontal: 16,

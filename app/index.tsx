@@ -13,13 +13,11 @@ import PaymentConfirmationScreen from './PaymentConfirmationScreen';
 import * as SplashScreen from 'expo-splash-screen';
 
 
-// Stack Navigator
 const Stack = createStackNavigator();
 const isWeb = Platform.OS === 'web';
 const FIXED_WIDTH = 390;
 SplashScreen.preventAutoHideAsync();
 
-// Contenedor para centrar en Web
 const AppContainer = ({ children }) => {
 
   const [loaded, error] = useFonts({

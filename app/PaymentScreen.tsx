@@ -23,21 +23,21 @@ export const currencies = [
     name: "Euro",
     code: "EUR",
     symbol: "€",
-    flag: require("@/assets/flags/eu.png"), // EU blue
+    flag: require("@/assets/flags/eu.png"), 
   },
   {
     id: "usd",
     name: "Dólar Estadounidense",
     code: "USD",
     symbol: "$",
-    flag: require("@/assets/flags/us.png"), // US blue
+    flag: require("@/assets/flags/us.png"), 
   },
   {
     id: "gbp",
     name: "Libra Esterlina",
     code: "GBP",
     symbol: "£",
-    flag: require("@/assets/flags/gs.png"), // UK blue
+    flag: require("@/assets/flags/gs.png"), 
   },
 ]
 
@@ -57,16 +57,13 @@ const PaymentScreen = () => {
 
   const [isCreatingPayment, setIsCreatingPayment] = useState(false)
 
-  // Find the current currency object
   const selectedCurrency = currencies.find((c) => c.id === selectedCurrencyId) || currencies[0] // Default to EUR
 
-  // Update currency when returning from selection screen
   useEffect(() => {
     if (route.params?.selectedCurrencyId) {
       setSelectedCurrencyId(route.params.selectedCurrencyId)
     }
 
-    // Reset if coming back from payment creation
     if (route.params?.reset) {
       setAmount("0,00")
       setDescription("")
@@ -76,14 +73,12 @@ const PaymentScreen = () => {
 
   // Manejar cambios en el monto
   const handleAmountChange = (text) => {
-    // Eliminar caracteres no numéricos
     const numericValue = text.replace(/[^0-9]/g, "")
 
     if (numericValue === "") {
       setAmount("0,00")
       setShowCursor(false)
     } else {
-      // Formatear como número con dos decimales y coma como separador decimal
       const value = Number.parseInt(numericValue) / 100
       const formattedValue = value.toFixed(2).replace(".", ",")
       setAmount(formattedValue)
@@ -91,9 +86,7 @@ const PaymentScreen = () => {
     }
   }
 
-  // Manejar cambios en la descripción
   const handleDescriptionChange = (text) => {
-    // Limitar a 140 caracteres
     if (text.length <= 140) {
       setDescription(text)
       setCharCount(text.length)
@@ -101,14 +94,12 @@ const PaymentScreen = () => {
   }
 
   const openCurrencySelector = () => {
-    // Ocultar el teclado antes de navegar
     Keyboard.dismiss()
     navigation.navigate("CurrencySelection", {
       currentCurrencyId: selectedCurrencyId,
     })
   }
 
-  // Función para enfocar el campo de monto
   const focusAmountInput = () => {
     if (amountInputRef.current) {
       amountInputRef.current.focus()
@@ -119,13 +110,11 @@ const PaymentScreen = () => {
     }
   }
 
-  // Función para crear el pago
   const createPayment = async () => {
     try {
       setIsCreatingPayment(true)
       Keyboard.dismiss()
 
-      // Convertir el monto de formato español (coma) a formato numérico
       const numericAmount = Number.parseFloat(amount.replace(",", "."))
 
       const paymentData = await createPaymentOrder({
@@ -134,7 +123,6 @@ const PaymentScreen = () => {
         notes: description || undefined,
       })
 
-      // Navegar a la pantalla de compartir con los datos del pago
       navigation.navigate("PaymentShare", {
         amount: amount,
         currency: selectedCurrency,
@@ -149,7 +137,6 @@ const PaymentScreen = () => {
     }
   }
 
-  // Determinar si el monto es diferente de 0,00
   const isAmountNonZero = amount !== "0,00" && amount !== ""
 
   return (
@@ -168,7 +155,6 @@ const PaymentScreen = () => {
 
         <View style={styles.divider} />
 
-        {/* Amount Display */}
         <TouchableOpacity style={styles.amountContainer} onPress={focusAmountInput} activeOpacity={0.8}>
           {showCursor ? (
             <View style={styles.amountWrapper}>
@@ -204,14 +190,13 @@ const PaymentScreen = () => {
           />
         </TouchableOpacity>
 
-        {/* Description Field */}
         <View style={styles.conceptContainer}>
           <AppText style={styles.conceptLabel}>Concepto</AppText>
           <TextInput
-            multiline={true} // Permitir múltiples líneas
+            multiline={true} 
             style={[
               styles.conceptInput,
-              { height: inputHeight }, // Ajustar la altura del campo de entrada
+              { height: inputHeight },
               (description.length > 0 || isDescriptionFocused) && styles.conceptInputActive,
             ]}
             placeholder="Añade descripción del pago"
@@ -221,7 +206,7 @@ const PaymentScreen = () => {
             maxLength={140}
             onFocus={() => setIsDescriptionFocused(true)}
             onBlur={() => setIsDescriptionFocused(false)}
-            onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)} // Actualizar la altura del campo de entrada
+            onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)} 
           />
           <AppText
             style={
@@ -232,7 +217,6 @@ const PaymentScreen = () => {
           </AppText>
         </View>
 
-        {/* Continue Button */}
         <TouchableOpacity
           style={[
             styles.continueButton,

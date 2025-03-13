@@ -1,6 +1,6 @@
 import React from "react"
 import { useEffect, useState } from "react"
-import { View, TouchableOpacity, SafeAreaView, StyleSheet, Platform, Dimensions } from "react-native"
+import { View, TouchableOpacity, SafeAreaView, StyleSheet, Platform, Dimensions, Image } from "react-native"
 import { StatusBar } from "expo-status-bar"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation, useRoute } from "@react-navigation/native"
@@ -9,18 +9,16 @@ import QRCode from "react-native-qrcode-svg"
 import { usePaymentWebSocket } from "@/hooks/use-payment-websocket"
 
 const { width } = Dimensions.get("window")
-const QR_SIZE = width * 0.28
+const QR_SIZE = width * 0.34
 
 const QRCodeScreen = () => {
   const navigation = useNavigation()
   const route = useRoute()
   console.log("route.params", route.params)
-  // Actualizado para recibir paymentData y web_url
   const { amount, currency, web_url } = route.params
 
   const paymentData = route.params?.paymentData || null
   console.log("currency", currency)
-  // Usar web_url de paymentData si está disponible, o el proporcionado directamente
   const paymentLink = web_url || paymentData?.web_url || "pay.bitnovo.com/error"
   const [useMockWebSocket, setUseMockWebSocket] = useState(false)
 
@@ -47,7 +45,6 @@ const QRCodeScreen = () => {
     useMockWebSocket: useMockWebSocket,
   })
 
-  // If we've tried to connect 3 times and still not connected, use mock WebSocket
   useEffect(() => {
     if (connectionAttempts >= 3 && !isConnected) {
       setUseMockWebSocket(true)
@@ -55,13 +52,10 @@ const QRCodeScreen = () => {
   }, [connectionAttempts, isConnected])
 
 
-  // Determinar la URL completa para el QR
   const getQRValue = () => {
-    // Si la URL ya incluye http/https, usarla directamente
     if (paymentLink.startsWith("http")) {
       return paymentLink
     }
-    // De lo contrario, añadir https://
     return `https://${paymentLink}`
   }
 
@@ -69,24 +63,21 @@ const QRCodeScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color="#002859" />
         </TouchableOpacity>
       </View>
 
-      {/* Info Alert */}
       <View style={styles.alertContainer}>
         <View style={styles.alertIconContainer}>
-          <Ionicons name="information-circle" size={24} color="#0066CC" />
+          <Image source={require('@/assets/images/information.png')} width={24} height={24} />
         </View>
         <AppText style={styles.alertText}>
           Escanea el QR y serás redirigido a la pasarela de pago de Bitnovo Pay.
         </AppText>
       </View>
 
-      {/* QR Code */}
       <View style={[styles.qrContainer, isUpdating && styles.qrUpdating]}>
         <QRCode
           value={getQRValue()}
@@ -100,32 +91,7 @@ const QRCodeScreen = () => {
         />
       </View>
 
-      {/* Payment Details */}
-      <View style={styles.detailsContainer}>
-        {/* Amount */}
-        <AppText style={styles.amountText}>
-          {amount} {currency.symbol}
-        </AppText>
 
-        {/* Payment Info */}
-        {paymentData && paymentData.address && (
-          <View style={styles.paymentInfoContainer}>
-            <AppText style={styles.paymentInfoLabel}>Dirección:</AppText>
-            <AppText style={styles.paymentInfoValue} numberOfLines={1} ellipsizeMode="middle">
-              {paymentData.address}
-            </AppText>
-          </View>
-        )}
-
-        {paymentData && paymentData.tag_memo && (
-          <View style={styles.paymentInfoContainer}>
-            <AppText style={styles.paymentInfoLabel}>TAG/MEMO:</AppText>
-            <AppText style={styles.paymentInfoValue}>{paymentData.tag_memo}</AppText>
-          </View>
-        )}
-      </View>
-
-      {/* Footer */}
       <AppText style={styles.footerText}>Esta pantalla se actualizará automáticamente.</AppText>
     </SafeAreaView>
   )
@@ -211,7 +177,7 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
     marginTop: "auto",
-    marginBottom: 40,
+    marginBottom: 200,
   },
 })
 

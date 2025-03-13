@@ -8,12 +8,9 @@ const PaymentConfirmationScreen = () => {
   const navigation = useNavigation()
   const route = useRoute()
 
-  // Get payment details from route params
   const { amount, currency } = route.params || {}
 
-  // Handle finish button press
   const handleFinish = () => {
-    // Navigate back to the main payment screen
     navigation.navigate("Payment", { reset: true })
   }
 
@@ -21,17 +18,13 @@ const PaymentConfirmationScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
-      {/* Logo */}
       <View style={styles.logoContainer}>
         <Image source={require("@/assets/images/bitnovo-icon.png")} style={styles.logo} resizeMode="contain" />
       </View>
 
-      {/* Línea divisoria */}
       <View style={styles.divider} />
 
-      {/* Contenido principal */}
       <View style={styles.content}>
-        {/* Imagen de confeti con checkmark */}
         <Image
           source={require("@/assets/images/confetti-success.png")}
           style={styles.confettiImage}
@@ -48,7 +41,6 @@ const PaymentConfirmationScreen = () => {
         )}
       </View>
 
-      {/* Botón de finalizar */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
           <AppText style={styles.finishButtonText}>Finalizar</AppText>

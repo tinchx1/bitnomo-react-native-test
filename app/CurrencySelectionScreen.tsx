@@ -16,13 +16,11 @@ import { currencies } from './PaymentScreen';
 import AppText from '@/components/ui/AppText';
 
 const CurrencySelectionScreen = ({ navigation, route }) => {
-  // Get the current currency from route params
   const currentCurrencyId = route.params?.currentCurrencyId || 'usd';
   const [selectedCurrency, setSelectedCurrency] = useState(currentCurrencyId);
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredCurrency, setHoveredCurrency] = useState(null);
 
-  // Filter currencies based on search query
   const filteredCurrencies = searchQuery
     ? currencies.filter(currency =>
       currency.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -32,7 +30,6 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
 
   const handleCurrencySelect = (currencyId) => {
     setSelectedCurrency(currencyId);
-    // Navigate back to payment screen with the selected currency
     navigation.navigate('Payment', {
       selectedCurrencyId: currencyId,
     });
@@ -75,7 +72,6 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -88,7 +84,6 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Image source={require('@/assets/images/icon-search.png')} style={styles.searchIcon} />
         <TextInput
@@ -97,11 +92,10 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
           placeholderTextColor="#8E9AAB"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          selectionColor="#4D90FE" // Add blue cursor color
+          selectionColor="#4D90FE" 
         />
       </View>
 
-      {/* Currency List */}
       <FlatList
         data={filteredCurrencies}
         renderItem={renderCurrencyItem}
@@ -125,8 +119,8 @@ const styles = StyleSheet.create({
   },
   headerTitleContainer: {
     flex: 1,
-    alignItems: 'center', // Center the title
-    marginRight: 40, // Offset for the back button to ensure true center
+    alignItems: 'center', 
+    marginRight: 40, 
   },
   backButton: {
     width: 40,
@@ -141,7 +135,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#0A2463',
-    textAlign: 'center', // Ensure text is centered
+    textAlign: 'center',
   },
   searchContainer: {
     flexDirection: 'row',

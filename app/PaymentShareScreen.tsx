@@ -19,7 +19,6 @@ import SuccessModal from "./SuccessModal"
 import AppText from "@/components/ui/AppText"
 import { usePaymentWebSocket } from "../hooks/use-payment-websocket"
 
-// Default country
 const defaultCountry = {
   id: "es",
   name: "España",
@@ -30,15 +29,12 @@ const PaymentShareScreen = () => {
   const navigation = useNavigation()
   const route = useRoute()
 
-  // Actualizado para incluir paymentData y web_url de la respuesta de la API
   const { amount, currency, description, paymentData, web_url } = route.params
 
-  // States for WhatsApp sharing
   const [showWhatsAppInput, setShowWhatsAppInput] = useState(route.params?.showWhatsAppInput || false)
   const [phoneNumber, setPhoneNumber] = useState("")
   const [selectedCountry, setSelectedCountry] = useState(defaultCountry)
 
-  // Modal states
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [modalInfo, setModalInfo] = useState({
     title: "",
@@ -46,9 +42,7 @@ const PaymentShareScreen = () => {
     buttonText: "Entendido",
   })
 
-  // Estado para el enlace de pago formateado
   const [paymentLink, setPaymentLink] = useState("pay.bitnovo.com/cargando...")
-  // Use the custom WebSocket hook
   const {
     status: paymentStatus,
     isConnected,
@@ -59,16 +53,15 @@ const PaymentShareScreen = () => {
     onStatusChange: (status) => {
       if (status === "completed") {
         console.log("Payment status changed:", status)
-        // Navigate directly to PaymentConfirmationScreen
-        // navigation.navigate("PaymentConfirmation", {
-        //   amount,
-        //   currency,
-        //   paymentData,
-        // })
+        Navigate directly to PaymentConfirmationScreen
+        navigation.navigate("PaymentConfirmation", {
+          amount,
+          currency,
+          paymentData,
+        })
       }
     },
   })
-  // Extraer el hostname y path de la URL completa
   useEffect(() => {
     if (web_url) {
       console.log("URL completa:", web_url)
@@ -82,7 +75,6 @@ const PaymentShareScreen = () => {
     }
   }, [web_url])
 
-  // Update selected country when returning from country selection
   useFocusEffect(
     React.useCallback(() => {
       console.log("Selected country in main:", route.params?.selectedCountry);
@@ -92,13 +84,11 @@ const PaymentShareScreen = () => {
     }, [route.params?.selectedCountry])
   );
   const copyToClipboard = () => {
-    // Usar la URL completa para copiar al portapapeles
     Clipboard.setString(web_url || paymentLink)
     Alert.alert("Enlace copiado", "El enlace de pago ha sido copiado al portapapeles.")
   }
 
   const shareViaEmail = () => {
-    // En una app real, esto abriría la app de correo electrónico con el enlace
     if (web_url) {
       const subject = "Solicitud de pago"
       const body = `Solicitud de pago por ${amount} ${currency.symbol}.\n\nEnlace: ${web_url}`
@@ -126,8 +116,8 @@ const PaymentShareScreen = () => {
 
   const openCountrySelector = () => {
     navigation.navigate("CountrySelection", {
-      ...route.params, // Pasamos todos los datos originales
-      currentCountryId: selectedCountry.id, // Enviamos el país actual
+      ...route.params, 
+      currentCountryId: selectedCountry.id, 
     });
 
   }
@@ -139,13 +129,10 @@ const PaymentShareScreen = () => {
     }
 
     if (web_url) {
-      // Formatear el número de teléfono con el código de país
       const formattedNumber = `${selectedCountry.code}${phoneNumber.replace(/\s+/g, "")}`
 
-      // Crear el mensaje para WhatsApp
       const message = `Solicitud de pago por ${amount} ${currency.symbol}. Enlace: ${web_url}`
 
-      // Crear la URL de WhatsApp
       const whatsappUrl = `whatsapp://send?phone=${formattedNumber}&text=${encodeURIComponent(message)}`
 
       Linking.canOpenURL(whatsappUrl)
@@ -153,7 +140,6 @@ const PaymentShareScreen = () => {
           if (supported) {
             return Linking.openURL(whatsappUrl)
           } else {
-            // Mostrar modal de éxito aunque no se pueda abrir WhatsApp (para simular)
             setModalInfo({
               title: "Solicitud enviada",
               message: `Tu solicitud de pago ha sido enviada con éxito por WhatsApp.`,
@@ -163,7 +149,6 @@ const PaymentShareScreen = () => {
           }
         })
         .catch((error) => {
-          // Mostrar modal de éxito aunque haya error (para simular)
           setModalInfo({
             title: "Solicitud enviada",
             message: `Tu solicitud de pago ha sido enviada con éxito por WhatsApp.`,
@@ -193,7 +178,6 @@ const PaymentShareScreen = () => {
   }
 
   const createNewRequest = () => {
-    // Show success modal first
     setModalInfo({
       title: "Solicitud enviada",
       message: "Tu solicitud de pago ha sido creada con éxito.",
@@ -204,7 +188,6 @@ const PaymentShareScreen = () => {
 
   const handleModalClose = () => {
     setShowSuccessModal(false)
-    // If this was from the "Nueva solicitud" button, navigate back to payment screen
     if (modalInfo.message.includes("creada con éxito")) {
       navigation.navigate("Payment", { reset: true })
     }
@@ -222,7 +205,6 @@ const PaymentShareScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
-      {/* Main Content */}
       <View style={styles.content}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -239,7 +221,6 @@ const PaymentShareScreen = () => {
           <AppText style={styles.subtitle}>Comparte el enlace de pago con el cliente</AppText>
         </View>
 
-        {/* Payment Link */}
         <View style={styles.linkContainer}>
           <TouchableOpacity style={styles.linkContent} onPress={copyToClipboard}>
             <Image source={require("@/assets/images/link.png")} style={styles.linkIcon} resizeMode="contain" />
@@ -252,7 +233,6 @@ const PaymentShareScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Email Option */}
         <TouchableOpacity
           style={[styles.shareOption, paymentStatus === "completed" && styles.shareOptionDisabled]}
           onPress={shareViaEmail}
@@ -264,7 +244,6 @@ const PaymentShareScreen = () => {
           <AppText style={styles.shareOptionText}>Enviar por correo electrónico</AppText>
         </TouchableOpacity>
 
-        {/* WhatsApp Option */}
         {showWhatsAppInput ? (
           <View style={styles.whatsappInputContainer}>
             <View style={styles.phoneInputRow}>
@@ -301,7 +280,6 @@ const PaymentShareScreen = () => {
           </TouchableOpacity>
         )}
 
-        {/* Share with other apps */}
         <TouchableOpacity
           style={[styles.shareOption, paymentStatus === "completed" && styles.shareOptionDisabled]}
           onPress={shareWithOtherApps}
@@ -314,7 +292,6 @@ const PaymentShareScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* New Request Button */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity style={styles.newRequestButton} onPress={createNewRequest}>
           <AppText style={styles.newRequestText}>Nueva solicitud</AppText>
@@ -324,7 +301,6 @@ const PaymentShareScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Success Modal */}
       <SuccessModal
         visible={showSuccessModal}
         title={modalInfo.title}
@@ -343,7 +319,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 100, // Añadir espacio para el botón de nueva solicitud
+    paddingBottom: 100, 
   },
   header: {
     borderRadius: 12,
