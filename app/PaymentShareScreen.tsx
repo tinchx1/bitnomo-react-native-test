@@ -14,10 +14,11 @@ import {
 } from "react-native"
 import { StatusBar } from "expo-status-bar"
 import { Ionicons } from "@expo/vector-icons"
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native"
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import SuccessModal from "./SuccessModal"
 import AppText from "@/components/ui/AppText"
 import { usePaymentWebSocket } from "../hooks/use-payment-websocket"
+import { StackNavigationProp } from "@react-navigation/stack"
 
 const defaultCountry = {
   id: "es",
@@ -25,43 +26,38 @@ const defaultCountry = {
   code: "+34",
 }
 
+type RootStackParamList = {
+  PaymentConfirmation: { amount: number; currency: { symbol: string }; paymentData: any }
+  CountrySelection: { currentCountryId: string }
+  PaymentShare: { amount: number; currency: { symbol: string }; description: string; paymentData: any; web_url: string; showWhatsAppInput: boolean; selectedCountry: any }
+  QRCode: { paymentData: any; amount: number; currency: { symbol: string } }
+}
+type PaymentShareScreenRouteProp = RouteProp<{ params: { amount: number; currency: { symbol: string }, description: string, paymentData: any, web_url: string, showWhatsAppInput: boolean, selectedCountry: any } }, 'params'>
+
 const PaymentShareScreen = () => {
-  const navigation = useNavigation()
-  const route = useRoute()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const route = useRoute<PaymentShareScreenRouteProp>()
 
   const { amount, currency, description, paymentData, web_url } = route.params
-
+  console.log("paymentData", paymentData)
   const [showWhatsAppInput, setShowWhatsAppInput] = useState(route.params?.showWhatsAppInput || false)
   const [phoneNumber, setPhoneNumber] = useState("")
   const [selectedCountry, setSelectedCountry] = useState(defaultCountry)
 
-  const [showSuccessModal, setShowSuccessModal] = useState(false)
-  const [modalInfo, setModalInfo] = useState({
-    title: "",
-    message: "",
-    buttonText: "Entendido",
-  })
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false)
 
   const [paymentLink, setPaymentLink] = useState("pay.bitnovo.com/cargando...")
-  const {
-    status: paymentStatus,
-    isConnected,
-    connectionAttempts,
-    useMockWebSocket
-  } = usePaymentWebSocket({
-    identifier: paymentData?.identifier,
-    onStatusChange: (status) => {
+  usePaymentWebSocket(paymentData?.identifier,
+    (status) => {
       if (status === "completed") {
-        console.log("Payment status changed:", status)
-        Navigate directly to PaymentConfirmationScreen
         navigation.navigate("PaymentConfirmation", {
           amount,
           currency,
           paymentData,
         })
       }
-    },
-  })
+    }
+  )
   useEffect(() => {
     if (web_url) {
       console.log("URL completa:", web_url)
@@ -70,19 +66,16 @@ const PaymentShareScreen = () => {
         setPaymentLink(url.hostname + url.pathname)
       } catch (error) {
         console.error("URL inválida:", web_url, error)
-        setPaymentLink("pay.bitnovo.com/error")
       }
     }
   }, [web_url])
 
-  useFocusEffect(
-    React.useCallback(() => {
-      console.log("Selected country in main:", route.params?.selectedCountry);
-      if (route.params?.selectedCountry) {
-        setSelectedCountry(route.params.selectedCountry);
-      }
-    }, [route.params?.selectedCountry])
-  );
+  useEffect(() => {
+    if (route.params?.selectedCountry) {
+      setSelectedCountry(route.params.selectedCountry);
+    }
+  }, [route.params?.selectedCountry]);
+
   const copyToClipboard = () => {
     Clipboard.setString(web_url || paymentLink)
     Alert.alert("Enlace copiado", "El enlace de pago ha sido copiado al portapapeles.")
@@ -116,50 +109,25 @@ const PaymentShareScreen = () => {
 
   const openCountrySelector = () => {
     navigation.navigate("CountrySelection", {
-      ...route.params, 
-      currentCountryId: selectedCountry.id, 
+      ...route.params,
+      currentCountryId: selectedCountry.id,
     });
 
   }
 
   const sendWhatsAppMessage = () => {
+    const phoneRegex = /^(\d{3}) (\d{3}) (\d{4})$/;
     if (!phoneNumber.trim()) {
-      Alert.alert("Error", "Por favor, introduce un número de teléfono.")
-      return
+      Alert.alert("Error", "Por favor, introduce un número de teléfono.");
+      return;
     }
-
-    if (web_url) {
-      const formattedNumber = `${selectedCountry.code}${phoneNumber.replace(/\s+/g, "")}`
-
-      const message = `Solicitud de pago por ${amount} ${currency.symbol}. Enlace: ${web_url}`
-
-      const whatsappUrl = `whatsapp://send?phone=${formattedNumber}&text=${encodeURIComponent(message)}`
-
-      Linking.canOpenURL(whatsappUrl)
-        .then((supported) => {
-          if (supported) {
-            return Linking.openURL(whatsappUrl)
-          } else {
-            setModalInfo({
-              title: "Solicitud enviada",
-              message: `Tu solicitud de pago ha sido enviada con éxito por WhatsApp.`,
-              buttonText: "Entendido",
-            })
-            setShowSuccessModal(true)
-          }
-        })
-        .catch((error) => {
-          setModalInfo({
-            title: "Solicitud enviada",
-            message: `Tu solicitud de pago ha sido enviada con éxito por WhatsApp.`,
-            buttonText: "Entendido",
-          })
-          setShowSuccessModal(true)
-        })
-    } else {
-      Alert.alert("Error", "No hay un enlace de pago disponible para compartir.")
+    if (!phoneRegex.test(phoneNumber)) {
+      Alert.alert("Error", "Por favor, introduce un número de teléfono en el formato 300 678 9087.");
+      return;
     }
+    setShowSuccessModal(true);
   }
+
 
   const shareWithOtherApps = async () => {
     if (web_url) {
@@ -178,19 +146,11 @@ const PaymentShareScreen = () => {
   }
 
   const createNewRequest = () => {
-    setModalInfo({
-      title: "Solicitud enviada",
-      message: "Tu solicitud de pago ha sido creada con éxito.",
-      buttonText: "Entendido",
-    })
     setShowSuccessModal(true)
   }
 
   const handleModalClose = () => {
     setShowSuccessModal(false)
-    if (modalInfo.message.includes("creada con éxito")) {
-      navigation.navigate("Payment", { reset: true })
-    }
   }
 
   const navigateToQRCode = () => {
@@ -200,6 +160,22 @@ const PaymentShareScreen = () => {
       Alert.alert("Error", "No hay datos de pago disponibles para mostrar el código QR.")
     }
   }
+
+  const formatPhoneNumber = (text: string) => {
+    const cleaned = text.replace(/\D/g, "");
+
+    const limited = cleaned.slice(0, 10);
+
+    let formatted = limited;
+    if (limited.length > 3 && limited.length <= 6) {
+      formatted = `${limited.slice(0, 3)} ${limited.slice(3)}`;
+    } else if (limited.length > 6) {
+      formatted = `${limited.slice(0, 3)} ${limited.slice(3, 6)} ${limited.slice(6)}`;
+    }
+
+    setPhoneNumber(formatted);
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -211,7 +187,7 @@ const PaymentShareScreen = () => {
             <View style={styles.iconContainer}>
               <Image source={require("@/assets/images/pending.png")} style={styles.headerIcon} resizeMode="contain" />
             </View>
-            <View style={styles.headerTextContainer}>
+            <View>
               <AppText style={styles.headerTitle}>Solicitud de pago</AppText>
               <AppText style={styles.amount}>
                 {amount} {currency.symbol}
@@ -234,9 +210,8 @@ const PaymentShareScreen = () => {
         </View>
 
         <TouchableOpacity
-          style={[styles.shareOption, paymentStatus === "completed" && styles.shareOptionDisabled]}
+          style={styles.shareOption}
           onPress={shareViaEmail}
-          disabled={paymentStatus === "completed"}
         >
           <View style={styles.shareIconContainer}>
             <Image source={require("@/assets/images/email.png")} style={styles.shareIcon} resizeMode="contain" />
@@ -259,9 +234,8 @@ const PaymentShareScreen = () => {
                 placeholderTextColor="#9EA3AE"
                 keyboardType="phone-pad"
                 value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                onChangeText={formatPhoneNumber}
               />
-
               <TouchableOpacity style={styles.sendButton} onPress={sendWhatsAppMessage}>
                 <AppText style={styles.sendButtonText}>Enviar</AppText>
               </TouchableOpacity>
@@ -269,9 +243,8 @@ const PaymentShareScreen = () => {
           </View>
         ) : (
           <TouchableOpacity
-            style={[styles.shareOption, paymentStatus === "completed" && styles.shareOptionDisabled]}
+            style={styles.shareOption}
             onPress={toggleWhatsAppInput}
-            disabled={paymentStatus === "completed"}
           >
             <View style={styles.shareIconContainer}>
               <Image source={require("@/assets/images/wsp.png")} style={styles.shareIcon} resizeMode="contain" />
@@ -281,9 +254,8 @@ const PaymentShareScreen = () => {
         )}
 
         <TouchableOpacity
-          style={[styles.shareOption, paymentStatus === "completed" && styles.shareOptionDisabled]}
+          style={styles.shareOption}
           onPress={shareWithOtherApps}
-          disabled={paymentStatus === "completed"}
         >
           <View style={styles.shareIconContainer}>
             <Image source={require("@/assets/images/export.png")} style={styles.shareIcon} resizeMode="contain" />
@@ -303,9 +275,6 @@ const PaymentShareScreen = () => {
 
       <SuccessModal
         visible={showSuccessModal}
-        title={modalInfo.title}
-        message={modalInfo.message}
-        buttonText={modalInfo.buttonText}
         onClose={handleModalClose}
       />
     </SafeAreaView>
@@ -319,7 +288,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 100, 
+    paddingBottom: 100,
   },
   header: {
     borderRadius: 12,
@@ -331,6 +300,7 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: "row",
     alignItems: "center",
+    height: 58,
     justifyContent: "center",
     gap: 12,
     marginBottom: 12,
@@ -415,9 +385,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     height: 55,
   },
-  shareOptionDisabled: {
-    opacity: 0.5,
-  },
+
   shareIconContainer: {
     justifyContent: "center",
     alignItems: "center",
@@ -496,6 +464,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
+    marginTop: 50,
     paddingHorizontal: 20,
     zIndex: 1,
   },

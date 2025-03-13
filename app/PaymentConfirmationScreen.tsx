@@ -1,17 +1,22 @@
 import React from "react"
 import { View, TouchableOpacity, SafeAreaView, StyleSheet, Image, Platform } from "react-native"
 import { StatusBar } from "expo-status-bar"
-import { useNavigation, useRoute } from "@react-navigation/native"
+import { useNavigation, useRoute, RouteProp, NavigationProp } from "@react-navigation/native"
 import AppText from "@/components/ui/AppText"
 
-const PaymentConfirmationScreen = () => {
-  const navigation = useNavigation()
-  const route = useRoute()
+type RootStackParamList = {
+  Payment: undefined;
+};
 
-  const { amount, currency } = route.params || {}
+type PaymentConfirmationRouteProp = RouteProp<{ params: { amount: number; currency: string } }, 'params'>
+const PaymentConfirmationScreen = () => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>()
+  const route = useRoute<PaymentConfirmationRouteProp>()
+
+  const { amount, currency } = route.params
 
   const handleFinish = () => {
-    navigation.navigate("Payment", { reset: true })
+    navigation.navigate("Payment")
   }
 
   return (
@@ -34,11 +39,6 @@ const PaymentConfirmationScreen = () => {
         <AppText style={styles.title}>Pago recibido</AppText>
         <AppText style={styles.subtitle}>El pago se ha confirmado con éxito</AppText>
 
-        {amount && currency && (
-          <AppText style={styles.amountText}>
-            {amount} {currency.symbol}
-          </AppText>
-        )}
       </View>
 
       <View style={styles.buttonContainer}>
@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    maxWidth: 400,
     alignSelf: "center",
+    width: "100%",
   },
   logoContainer: {
     alignItems: "center",
@@ -98,18 +98,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#0066CC",
-    marginTop: 8,
   },
   buttonContainer: {
     paddingHorizontal: 24,
     paddingBottom: 40,
   },
   finishButton: {
-    backgroundColor: "white",
+    backgroundColor: "#F5F7FA",
     paddingVertical: 16,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#0066CC",
     alignItems: "center",
   },
   finishButtonText: {

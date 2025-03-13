@@ -14,12 +14,25 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { currencies } from './PaymentScreen';
 import AppText from '@/components/ui/AppText';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-const CurrencySelectionScreen = ({ navigation, route }) => {
+
+type CurrencySelectionScreenRouteProp = RouteProp<{ Payment: { currentCurrencyId: string } }, 'Payment'>;
+
+type RootStackParamList = {
+  Payment: { selectedCurrencyId: string };
+}
+
+
+const CurrencySelectionScreen = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'Payment'>>();
+  const route = useRoute<CurrencySelectionScreenRouteProp>();
   const currentCurrencyId = route.params?.currentCurrencyId || 'usd';
-  const [selectedCurrency, setSelectedCurrency] = useState(currentCurrencyId);
+  const [selectedCurrency, setSelectedCurrency] = useState<String>(currentCurrencyId);
   const [searchQuery, setSearchQuery] = useState('');
-  const [hoveredCurrency, setHoveredCurrency] = useState(null);
+  const [hoveredCurrency, setHoveredCurrency] = useState<string>("");
 
   const filteredCurrencies = searchQuery
     ? currencies.filter(currency =>
@@ -28,14 +41,14 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
     )
     : currencies;
 
-  const handleCurrencySelect = (currencyId) => {
+  const handleCurrencySelect = (currencyId: string) => {
     setSelectedCurrency(currencyId);
     navigation.navigate('Payment', {
       selectedCurrencyId: currencyId,
     });
   };
 
-  const renderCurrencyItem = ({ item }) => {
+  const renderCurrencyItem = ({ item }: { item: { id: string; name: string; code: string; flag: any } }) => {
     const isSelected = item.id === selectedCurrency;
     const isHovered = item.id === hoveredCurrency;
 
@@ -47,19 +60,19 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
         ]}
         onPress={() => handleCurrencySelect(item.id)}
         onPressIn={() => setHoveredCurrency(item.id)}
-        onPressOut={() => setHoveredCurrency(null)}
+        onPressOut={() => setHoveredCurrency("")}
       >
         <View style={styles.currencyInfo}>
           <Image source={item.flag} style={styles.flagImage} />
           <View style={styles.currencyText}>
-            <AppText style={styles.currencyName}>{item.name}</AppText>
+            <Text style={styles.currencyName}>{item.name}</Text>
             <AppText style={styles.currencyCode}>{item.code}</AppText>
           </View>
         </View>
 
         {isSelected ? (
           <View style={styles.checkmarkContainer}>
-            <Ionicons name="checkmark-circle" size={24} color="#4D90FE" />
+            <Ionicons name="checkmark-circle" size={24} color="#71b0fd" />
           </View>
         ) : (
           <Ionicons name="chevron-forward" size={20} color="#8E9AAB" />
@@ -80,7 +93,7 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
           <Ionicons name="arrow-back" size={22} color="#0A2463" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <AppText style={styles.headerTitle}>Selecciona una divisa</AppText>
+          <Text style={styles.headerTitle}>Selecciona una divisa</Text>
         </View>
       </View>
 
@@ -92,7 +105,7 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
           placeholderTextColor="#8E9AAB"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          selectionColor="#4D90FE" 
+          selectionColor="#4D90FE"
         />
       </View>
 
@@ -119,8 +132,8 @@ const styles = StyleSheet.create({
   },
   headerTitleContainer: {
     flex: 1,
-    alignItems: 'center', 
-    marginRight: 40, 
+    alignItems: 'center',
+    marginRight: 40,
   },
   backButton: {
     width: 40,
@@ -133,6 +146,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
+    fontFamily: 'MulishBold',
     fontWeight: '600',
     color: '#0A2463',
     textAlign: 'center',
@@ -186,6 +200,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   currencyName: {
+    fontFamily: 'MulishBold',
     fontSize: 16,
     fontWeight: '600',
     color: '#0A2463',

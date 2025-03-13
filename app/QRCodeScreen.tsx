@@ -3,53 +3,38 @@ import { useEffect, useState } from "react"
 import { View, TouchableOpacity, SafeAreaView, StyleSheet, Platform, Dimensions, Image } from "react-native"
 import { StatusBar } from "expo-status-bar"
 import { Ionicons } from "@expo/vector-icons"
-import { useNavigation, useRoute } from "@react-navigation/native"
+import { NavigationProp, RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import AppText from "@/components/ui/AppText"
 import QRCode from "react-native-qrcode-svg"
 import { usePaymentWebSocket } from "@/hooks/use-payment-websocket"
 
 const { width } = Dimensions.get("window")
-const QR_SIZE = width * 0.34
+const QR_SIZE = width * 0.8
+
+type RootStackParamList = {
+  PaymentConfirmation: { amount: number; currency: { symbol: string }; paymentData: any }
+}
+type PaymentShareScreenRouteProp = RouteProp<{ params: { amount: number; currency: { symbol: string }, description: string, paymentData: any, web_url: string, showWhatsAppInput: boolean, selectedCountry: any } }, 'params'>
 
 const QRCodeScreen = () => {
-  const navigation = useNavigation()
-  const route = useRoute()
-  console.log("route.params", route.params)
-  const { amount, currency, web_url } = route.params
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>()
+  const route = useRoute<PaymentShareScreenRouteProp>()
+  const { amount, currency, web_url, paymentData } = route.params
 
-  const paymentData = route.params?.paymentData || null
-  console.log("currency", currency)
   const paymentLink = web_url || paymentData?.web_url || "pay.bitnovo.com/error"
-  const [useMockWebSocket, setUseMockWebSocket] = useState(false)
 
 
-  const {
-    status: paymentStatus,
-    isUpdating,
-    isConnected,
-    connectionAttempts,
-    reconnect,
-  } = usePaymentWebSocket({
-    identifier: paymentData?.identifier,
-    onStatusChange: (status) => {
-      console.log("Payment status changed:", status)
-      // if (status === "completed") {
-      //   // Navigate directly to PaymentConfirmationScreen
-      //   navigation.navigate("PaymentConfirmation", {
-      //     amount,
-      //     currency,
-      //     paymentData,
-      //   })
-      // }
-    },
-    useMockWebSocket: useMockWebSocket,
-  })
-
-  useEffect(() => {
-    if (connectionAttempts >= 3 && !isConnected) {
-      setUseMockWebSocket(true)
+  usePaymentWebSocket(paymentData?.identifier,
+    (status) => {
+      if (status === "completed") {
+        navigation.navigate("PaymentConfirmation", {
+          amount,
+          currency,
+          paymentData,
+        })
+      }
     }
-  }, [connectionAttempts, isConnected])
+  )
 
 
   const getQRValue = () => {
@@ -62,12 +47,12 @@ const QRCodeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color="#002859" />
         </TouchableOpacity>
       </View>
+
 
       <View style={styles.alertContainer}>
         <View style={styles.alertIconContainer}>
@@ -78,7 +63,7 @@ const QRCodeScreen = () => {
         </AppText>
       </View>
 
-      <View style={[styles.qrContainer, isUpdating && styles.qrUpdating]}>
+      <View style={styles.qrContainer}>
         <QRCode
           value={getQRValue()}
           size={QR_SIZE}
@@ -90,7 +75,7 @@ const QRCodeScreen = () => {
           logoBorderRadius={10}
         />
       </View>
-
+      <AppText style={styles.amountText}>{amount} {currency.symbol}</AppText>
 
       <AppText style={styles.footerText}>Esta pantalla se actualizará automáticamente.</AppText>
     </SafeAreaView>
@@ -104,7 +89,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
     marginTop: Platform.OS === "android" ? 30 : 0,
   },
   backButton: {
@@ -129,9 +113,9 @@ const styles = StyleSheet.create({
   },
   alertText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 12,
     color: "#002859",
-    lineHeight: 22,
+    lineHeight: 16,
   },
   qrContainer: {
     alignItems: "center",

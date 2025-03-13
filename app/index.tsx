@@ -18,7 +18,7 @@ const isWeb = Platform.OS === 'web';
 const FIXED_WIDTH = 390;
 SplashScreen.preventAutoHideAsync();
 
-const AppContainer = ({ children }) => {
+const AppContainer = ({ children: children }: { children: React.ReactNode }) => {
 
   const [loaded, error] = useFonts({
     MulishRegular: require('@/assets/fonts/Mulish-Regular.ttf'),
@@ -40,7 +40,7 @@ const AppContainer = ({ children }) => {
       <View style={styles.phoneContainer}>{children}</View>
     </View>
   ) : (
-      children
+    children
   );
 };
 
@@ -77,10 +77,7 @@ const styles = StyleSheet.create({
     maxHeight: 844,
     backgroundColor: 'white',
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    boxShadow: '0px 2px 3.84px rgba(0, 0, 0, 0.25)',
     elevation: 5,
   },
 });

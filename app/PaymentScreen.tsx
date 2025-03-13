@@ -11,11 +11,14 @@ import {
   Keyboard,
   Alert,
   ActivityIndicator,
+  Text,
 } from "react-native"
 import { StatusBar } from "expo-status-bar"
-import { useNavigation, useRoute } from "@react-navigation/native"
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import AppText from "@/components/ui/AppText"
 import { createPaymentOrder } from "@/api/payment-service"
+import { Ionicons } from "@expo/vector-icons"
+import { StackNavigationProp } from "@react-navigation/stack"
 
 export const currencies = [
   {
@@ -23,28 +26,36 @@ export const currencies = [
     name: "Euro",
     code: "EUR",
     symbol: "€",
-    flag: require("@/assets/flags/eu.png"), 
+    flag: require("@/assets/flags/eu.png"),
   },
   {
     id: "usd",
     name: "Dólar Estadounidense",
     code: "USD",
     symbol: "$",
-    flag: require("@/assets/flags/us.png"), 
+    flag: require("@/assets/flags/us.png"),
   },
   {
     id: "gbp",
     name: "Libra Esterlina",
     code: "GBP",
     symbol: "£",
-    flag: require("@/assets/flags/gs.png"), 
+    flag: require("@/assets/flags/gs.png"),
   },
 ]
 
+type PaymentScreenRouteProp = RouteProp<{ params: { selectedCurrencyId: string; reset: boolean } }, "params">
+
+type RootStackParamList = {
+  Payment: undefined
+  CurrencySelection: { currentCurrencyId: string }
+  PaymentShare: { amount: string; currency: { id: string; code: string; symbol: string }; description: string; paymentData: any; web_url: string }
+}
+
 const PaymentScreen = () => {
-  const navigation = useNavigation()
-  const route = useRoute()
-  const amountInputRef = useRef(null)
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList, "Payment">>()
+  const route = useRoute<PaymentScreenRouteProp>()
+  const amountInputRef = useRef<TextInput>(null)
 
   const [selectedCurrencyId, setSelectedCurrencyId] = useState("eur")
   const [amount, setAmount] = useState("0,00")
@@ -72,7 +83,7 @@ const PaymentScreen = () => {
   }, [route.params])
 
   // Manejar cambios en el monto
-  const handleAmountChange = (text) => {
+  const handleAmountChange = (text: string) => {
     const numericValue = text.replace(/[^0-9]/g, "")
 
     if (numericValue === "") {
@@ -86,7 +97,7 @@ const PaymentScreen = () => {
     }
   }
 
-  const handleDescriptionChange = (text) => {
+  const handleDescriptionChange = (text: string) => {
     if (text.length <= 140) {
       setDescription(text)
       setCharCount(text.length)
@@ -144,12 +155,11 @@ const PaymentScreen = () => {
       <SafeAreaView style={styles.container}>
         <StatusBar style="dark" />
 
-        {/* Header */}
         <View style={styles.header}>
-          <AppText style={styles.headerTitle}>Crear pago</AppText>
+          <Text style={styles.headerTitle}>Crear pago</Text>
           <TouchableOpacity style={styles.currencySelector} onPress={openCurrencySelector}>
-            <AppText style={styles.currencyText}>{selectedCurrency.code}</AppText>
-            <AppText style={styles.dropdownIcon}>▼</AppText>
+            <Text style={styles.currencyText}>{selectedCurrency.code}</Text>
+            <Ionicons name="chevron-down" size={16} color="#8E9AAB" style={styles.dropdownIcon} />
           </TouchableOpacity>
         </View>
 
@@ -162,8 +172,7 @@ const PaymentScreen = () => {
             </View>
           ) : (
             <AppText style={[styles.amountText, (amountFocused || isAmountNonZero) && styles.amountTextFocused]}>
-              {amount}
-              {selectedCurrency.symbol}
+              {selectedCurrency.id === "usd" ? `${selectedCurrency.symbol} ${amount}` : `${amount} ${selectedCurrency.symbol}`}
             </AppText>
           )}
           <TextInput
@@ -191,9 +200,9 @@ const PaymentScreen = () => {
         </TouchableOpacity>
 
         <View style={styles.conceptContainer}>
-          <AppText style={styles.conceptLabel}>Concepto</AppText>
+          <Text style={styles.conceptLabel}>Concepto</Text>
           <TextInput
-            multiline={true} 
+            multiline={true}
             style={[
               styles.conceptInput,
               { height: inputHeight },
@@ -206,7 +215,7 @@ const PaymentScreen = () => {
             maxLength={140}
             onFocus={() => setIsDescriptionFocused(true)}
             onBlur={() => setIsDescriptionFocused(false)}
-            onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)} 
+            onContentSizeChange={(e) => setInputHeight(e.nativeEvent.contentSize.height)}
           />
           <AppText
             style={
@@ -258,6 +267,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: "center",
+    fontFamily: "MulishBold",
     fontSize: 22,
     fontWeight: "600",
     color: "#002859",
@@ -269,17 +279,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#eff2f7",
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    height: 28,
     borderRadius: 20,
   },
   currencyText: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 12,
+    fontFamily: "MulishBold",
+    lineHeight: 16,
     color: "#002859",
     marginRight: 5,
   },
   dropdownIcon: {
-    fontSize: 12,
+    width: 16,
+    height: 16,
     color: "#002859",
   },
   divider: {
@@ -315,7 +327,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   conceptLabel: {
-    fontSize: 18,
+    fontFamily: "MulishBold",
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: "600",
     color: "#002859",
     marginBottom: 10,
@@ -324,9 +338,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#d3dce6",
     borderRadius: 10,
-    padding: 15,
+    height: 56,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
     fontSize: 16,
-    color: "#002859",
+    color: "#002859hvh",
   },
   conceptInputActive: {
     borderColor: "#0052b4",
@@ -353,7 +369,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   continueButtonText: {
-    color: "#0052b4",
+    color: "#71b0fd",
     fontSize: 18,
     fontWeight: "500",
   },

@@ -5,13 +5,11 @@ import AppText from '@/components/ui/AppText';
 
 interface SuccessModalProps {
   visible: boolean;
-  title: string;
-  message: string;
-  buttonText: string;
   onClose: () => void;
 }
 
-const SuccessModal = ({ visible, title, message, buttonText, onClose }: SuccessModalProps) => {
+
+const SuccessModal = ({ visible, onClose }: SuccessModalProps) => {
   return (
     <Modal
       visible={visible}
@@ -24,11 +22,11 @@ const SuccessModal = ({ visible, title, message, buttonText, onClose }: SuccessM
             <Ionicons name="checkmark" size={40} color="#0066CC" />
           </View>
 
-          <AppText style={styles.title}>{title}</AppText>
-          <AppText style={styles.message}>{message}</AppText>
+          <AppText style={styles.title}>Solicitud enviada</AppText>
+          <AppText style={styles.message}>Tu solicitud de pago ha sido creada con éxito.</AppText>
 
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <AppText style={styles.buttonText}>{buttonText}</AppText>
+            <AppText style={styles.buttonText}>Entendido</AppText>
           </TouchableOpacity>
         </View>
       </View>
@@ -40,7 +38,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   modalContainer: {

@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute, ParamListBase } from '@react-navigation/native';
 import AppText from '@/components/ui/AppText';
+import { StackNavigationProp } from '@react-navigation/stack';
+
 
 const countries = [
   {
@@ -67,13 +69,36 @@ const countries = [
 ];
 
 
+interface RootStackParamList extends ParamListBase {
+  CountrySelection: { currentCountryId: string };
+  PaymentShare: { currentCountryId: string; showWhatsAppInput: boolean; selectedCountry: Country };
+}
+
+
+type CountrySelectionScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'CountrySelection'
+>;
+
+const navigation = useNavigation<CountrySelectionScreenNavigationProp>();
+
+interface Country {
+  id: string;
+  name: string;
+  code: string;
+  flag: any;
+}
+
+interface RouteParams {
+  currentCountryId?: string;
+  [key: string]: any;
+}
 
 const CountrySelectionScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
+  const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const [searchQuery, setSearchQuery] = useState('');
   const currentCountryId = route.params?.currentCountryId || 'es';
-  const [hoveredCountry, setHoveredCountry] = useState(null);
+  const [hoveredCountry, setHoveredCountry] = useState<string>("");
 
   const filteredCountries = searchQuery
     ? countries.filter(country =>
@@ -82,17 +107,17 @@ const CountrySelectionScreen = () => {
     )
     : countries;
 
-  const handleCountrySelect = (country) => {
+  const handleCountrySelect = (country: Country) => {
     console.log('Selected country:', country);
     console.log(route.params, "country.id");
     navigation.navigate("PaymentShare", {
-      ...route.params, 
+      ...route.params,
       currentCountryId: country.id,
       showWhatsAppInput: true,
       selectedCountry: country,
     });
   }
-  const renderCountryItem = ({ item }) => {
+  const renderCountryItem = ({ item }: { item: Country }) => {
     const isSelected = item.id === currentCountryId;
     const isHovered = item.id === hoveredCountry;
 
@@ -104,7 +129,7 @@ const CountrySelectionScreen = () => {
         ]}
         onPress={() => handleCountrySelect(item)}
         onPressIn={() => setHoveredCountry(item.id)}
-        onPressOut={() => setHoveredCountry(null)}
+        onPressOut={() => setHoveredCountry("")}
       >
         <View style={styles.countryInfo}>
           <Image source={item.flag} style={styles.flagCircle} />
@@ -149,7 +174,7 @@ const CountrySelectionScreen = () => {
           placeholderTextColor="#8E9AAB"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          selectionColor="#4D90FE" 
+          selectionColor="#4D90FE"
         />
       </View>
 
@@ -177,8 +202,8 @@ const styles = StyleSheet.create({
   },
   headerTitleContainer: {
     flex: 1,
-    alignItems: 'center', 
-    marginRight: 40, 
+    alignItems: 'center',
+    marginRight: 40,
   },
   backButton: {
     width: 40,
@@ -193,7 +218,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#0A2463',
-    textAlign: 'center', 
+    textAlign: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
