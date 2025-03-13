@@ -108,8 +108,6 @@ const CountrySelectionScreen = () => {
     : countries;
 
   const handleCountrySelect = (country: Country) => {
-    console.log('Selected country:', country);
-    console.log(route.params, "country.id");
     navigation.navigate("PaymentShare", {
       ...route.params,
       currentCountryId: country.id,

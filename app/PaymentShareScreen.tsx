@@ -39,7 +39,6 @@ const PaymentShareScreen = () => {
   const route = useRoute<PaymentShareScreenRouteProp>()
 
   const { amount, currency, description, paymentData, web_url } = route.params
-  console.log("paymentData", paymentData)
   const [showWhatsAppInput, setShowWhatsAppInput] = useState(route.params?.showWhatsAppInput || false)
   const [phoneNumber, setPhoneNumber] = useState("")
   const [selectedCountry, setSelectedCountry] = useState(defaultCountry)
@@ -60,7 +59,6 @@ const PaymentShareScreen = () => {
   )
   useEffect(() => {
     if (web_url) {
-      console.log("URL completa:", web_url)
       try {
         const url = new URL(web_url)
         setPaymentLink(url.hostname + url.pathname)

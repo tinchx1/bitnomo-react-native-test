@@ -8,12 +8,8 @@ type RootStackParamList = {
   Payment: undefined;
 };
 
-type PaymentConfirmationRouteProp = RouteProp<{ params: { amount: number; currency: string } }, 'params'>
 const PaymentConfirmationScreen = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>()
-  const route = useRoute<PaymentConfirmationRouteProp>()
-
-  const { amount, currency } = route.params
 
   const handleFinish = () => {
     navigation.navigate("Payment")
