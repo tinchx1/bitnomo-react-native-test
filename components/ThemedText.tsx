@@ -18,7 +18,7 @@ export function ThemedText({
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
 
   return (
-    <Text
+    <AppText
       style={[
         { color },
         type === 'default' ? styles.default : undefined,

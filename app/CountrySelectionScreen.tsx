@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   SafeAreaView,
   StyleSheet,
   FlatList,
   Platform,
+  Pressable,
   Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import AppText from '@/components/ui/AppText';
 
 // Country data with flags, codes, and names
 const countries = [
@@ -20,7 +21,7 @@ const countries = [
     id: 'es',
     name: 'España',
     code: '+34',
-    flag: require('@/assets/flags/es.png'), // You would need to add these flag images
+    flag: require('@/assets/flags/es.png'),
   },
   {
     id: 'gq',
@@ -66,29 +67,14 @@ const countries = [
   },
 ];
 
-// For simplicity, we'll use colored circles instead of actual flag images
-const CountryFlag = ({ countryId }) => {
-  const flagColors = {
-    es: '#FF0000', // Spain - red
-    gq: '#3A7728', // Equatorial Guinea - green
-    gr: '#0D5EAF', // Greece - blue
-    gs: '#012169', // South Georgia - blue (UK)
-    gt: '#4997D0', // Guatemala - blue
-    gy: '#009E49', // Guyana - green
-    hk: '#DE2910', // Hong Kong - red
-    hn: '#0073CF', // Honduras - blue
-  };
 
-  return (
-    <View style={[styles.flagCircle, { backgroundColor: flagColors[countryId] || '#CCCCCC' }]} />
-  );
-};
 
 const CountrySelectionScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [searchQuery, setSearchQuery] = useState('');
   const currentCountryId = route.params?.currentCountryId || 'es';
+  const [hoveredCountry, setHoveredCountry] = useState(null);
 
   // Filter countries based on search query
   const filteredCountries = searchQuery
@@ -99,29 +85,34 @@ const CountrySelectionScreen = () => {
     : countries;
 
   const handleCountrySelect = (country) => {
-    // Navigate back to payment share screen with the selected country
-    navigation.navigate('PaymentShare', {
-      selectedCountry: country,
+    console.log('Selected country:', country);
+    console.log(route.params, "country.id");
+    navigation.navigate("PaymentShare", {
+      ...route.params, // Mantiene los datos originales como amount, currency, etc.
+      currentCountryId: country.id, // Pasamos el país seleccionado
       showWhatsAppInput: true,
+      selectedCountry: country,
     });
-  };
-
+  }
   const renderCountryItem = ({ item }) => {
     const isSelected = item.id === currentCountryId;
+    const isHovered = item.id === hoveredCountry;
 
     return (
-      <TouchableOpacity
+      <Pressable
         style={[
           styles.countryItem,
-          isSelected && styles.selectedCountryItem
+          isHovered && styles.hoveredCountryItem
         ]}
         onPress={() => handleCountrySelect(item)}
+        onPressIn={() => setHoveredCountry(item.id)}
+        onPressOut={() => setHoveredCountry(null)}
       >
         <View style={styles.countryInfo}>
-          <CountryFlag countryId={item.id} />
+          <Image source={item.flag} style={styles.flagCircle} />
           <View style={styles.countryText}>
-            <Text style={styles.countryCode}>{item.code}</Text>
-            <Text style={styles.countryName}>{item.name}</Text>
+            <AppText style={styles.countryCode}>{item.code}</AppText>
+            <AppText style={styles.countryName}>{item.name}</AppText>
           </View>
         </View>
 
@@ -132,7 +123,7 @@ const CountrySelectionScreen = () => {
         ) : (
           <Ionicons name="chevron-forward" size={20} color="#8E9AAB" />
         )}
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -148,7 +139,9 @@ const CountrySelectionScreen = () => {
         >
           <Ionicons name="arrow-back" size={22} color="#0A2463" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Seleccionar país</Text>
+        <View style={styles.headerTitleContainer}>
+          <AppText style={styles.headerTitle}>Seleccionar país</AppText>
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -160,6 +153,7 @@ const CountrySelectionScreen = () => {
           placeholderTextColor="#8E9AAB"
           value={searchQuery}
           onChangeText={setSearchQuery}
+          selectionColor="#4D90FE" // Add blue cursor color
         />
       </View>
 
@@ -186,6 +180,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: Platform.OS === 'android' ? 30 : 0,
   },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center', // Center the title
+    marginRight: 40, // Offset for the back button to ensure true center
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -199,6 +198,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#0A2463',
+    textAlign: 'center', // Ensure text is centered
   },
   searchContainer: {
     flexDirection: 'row',
@@ -207,7 +207,6 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#F5F7FA',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E8ECF2',
@@ -218,7 +217,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#0A2463',
+    color: '#0A2463', // Darker text color for better visibility
   },
   listContainer: {
     paddingHorizontal: 16,
@@ -228,13 +227,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F7FA',
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginVertical: 2,
   },
-  selectedCountryItem: {
+  hoveredCountryItem: {
     backgroundColor: '#F5F7FA',
-    marginHorizontal: -16,
-    paddingHorizontal: 16,
   },
   countryInfo: {
     flexDirection: 'row',

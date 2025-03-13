@@ -9,15 +9,18 @@ import {
   StyleSheet,
   FlatList,
   Image,
+  Pressable,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Assuming you're using Expo
-import { currencies } from './PaymentScreen'; // Import the shared currency data
+import { Ionicons } from '@expo/vector-icons';
+import { currencies } from './PaymentScreen';
+import AppText from '@/components/ui/AppText';
 
 const CurrencySelectionScreen = ({ navigation, route }) => {
   // Get the current currency from route params
   const currentCurrencyId = route.params?.currentCurrencyId || 'usd';
   const [selectedCurrency, setSelectedCurrency] = useState(currentCurrencyId);
   const [searchQuery, setSearchQuery] = useState('');
+  const [hoveredCurrency, setHoveredCurrency] = useState(null);
 
   // Filter currencies based on search query
   const filteredCurrencies = searchQuery
@@ -37,17 +40,23 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
 
   const renderCurrencyItem = ({ item }) => {
     const isSelected = item.id === selectedCurrency;
+    const isHovered = item.id === hoveredCurrency;
 
     return (
-      <TouchableOpacity
-        style={styles.currencyItem}
+      <Pressable
+        style={[
+          styles.currencyItem,
+          isHovered && styles.currencyItemHovered
+        ]}
         onPress={() => handleCurrencySelect(item.id)}
+        onPressIn={() => setHoveredCurrency(item.id)}
+        onPressOut={() => setHoveredCurrency(null)}
       >
         <View style={styles.currencyInfo}>
           <Image source={item.flag} style={styles.flagImage} />
           <View style={styles.currencyText}>
-            <Text style={styles.currencyName}>{item.name}</Text>
-            <Text style={styles.currencyCode}>{item.code}</Text>
+            <AppText style={styles.currencyName}>{item.name}</AppText>
+            <AppText style={styles.currencyCode}>{item.code}</AppText>
           </View>
         </View>
 
@@ -58,7 +67,7 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
         ) : (
           <Ionicons name="chevron-forward" size={20} color="#8E9AAB" />
         )}
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -74,18 +83,21 @@ const CurrencySelectionScreen = ({ navigation, route }) => {
         >
           <Ionicons name="arrow-back" size={22} color="#0A2463" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Selecciona una divisa</Text>
+        <View style={styles.headerTitleContainer}>
+          <AppText style={styles.headerTitle}>Selecciona una divisa</AppText>
+        </View>
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#8E9AAB" style={styles.searchIcon} />
+        <Image source={require('@/assets/images/icon-search.png')} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar"
           placeholderTextColor="#8E9AAB"
           value={searchQuery}
           onChangeText={setSearchQuery}
+          selectionColor="#4D90FE" // Add blue cursor color
         />
       </View>
 
@@ -111,6 +123,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center', // Center the title
+    marginRight: 40, // Offset for the back button to ensure true center
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -124,6 +141,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#0A2463',
+    textAlign: 'center', // Ensure text is centered
   },
   searchContainer: {
     flexDirection: 'row',
@@ -132,18 +150,18 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#F5F7FA',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E8ECF2',
   },
   searchIcon: {
     marginRight: 8,
+    height: 20,
+    width: 20,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#0A2463',
   },
   listContainer: {
     paddingHorizontal: 16,
@@ -153,8 +171,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F7FA',
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  currencyItemHovered: {
+    backgroundColor: '#F5F7FA',
   },
   currencyInfo: {
     flexDirection: 'row',

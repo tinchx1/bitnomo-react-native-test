@@ -1,38 +1,53 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationIndependentTree } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import { View, StyleSheet, Platform, Text } from 'react-native';
 import PaymentScreen from './PaymentScreen';
 import CurrencySelectionScreen from './CurrencySelectionScreen';
 import PaymentShareScreen from './PaymentShareScreen';
 import CountrySelectionScreen from './CountrySelectionScreen';
 import QRCodeScreen from './QRCodeScreen';
-import { View, StyleSheet, Platform, Dimensions } from 'react-native';
 import PaymentConfirmationScreen from './PaymentConfirmationScreen';
+import * as SplashScreen from 'expo-splash-screen';
 
-// Create a stack navigator
+
+// Stack Navigator
 const Stack = createStackNavigator();
-
 const isWeb = Platform.OS === 'web';
-// Ancho fijo para la aplicación en web (similar a un iPhone)
 const FIXED_WIDTH = 390;
+SplashScreen.preventAutoHideAsync();
 
-// Componente contenedor para centrar la app en web
+// Contenedor para centrar en Web
 const AppContainer = ({ children }) => {
-  if (!isWeb) {
-    return children;
+
+  const [loaded, error] = useFonts({
+    MulishRegular: require('@/assets/fonts/Mulish-Regular.ttf'),
+    MulishBold: require('@/assets/fonts/Mulish-Bold.ttf'),
+  });
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
+    return null;
   }
 
-  return (
+  return isWeb ? (
     <View style={styles.webContainer}>
-      <View style={styles.phoneContainer}>
-        {children}
-      </View>
+      <View style={styles.phoneContainer}>{children}</View>
     </View>
+  ) : (
+      children
   );
 };
 
 export default function App() {
+
   return (
     <AppContainer>
       <NavigationIndependentTree>
@@ -50,17 +65,18 @@ export default function App() {
   );
 }
 
+
 const styles = StyleSheet.create({
   webContainer: {
     flex: 1,
-    backgroundColor: '#f0f0f0', // Color de fondo para el área fuera de la app
+    backgroundColor: '#f0f0f0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   phoneContainer: {
     width: FIXED_WIDTH,
     height: '100%',
-    maxHeight: 844, // Altura aproximada de un iPhone 13
+    maxHeight: 844,
     backgroundColor: 'white',
     overflow: 'hidden',
     shadowColor: '#000',

@@ -32,6 +32,15 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Mulish-Regular.ttf",
+            "./assets/fonts/Mulish-Bold.ttf"
+          ]
+        }
       ]
     ],
     "experiments": {

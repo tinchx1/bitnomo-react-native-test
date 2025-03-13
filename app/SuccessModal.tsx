@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AppText from '@/components/ui/AppText';
 
 interface SuccessModalProps {
   visible: boolean;
@@ -23,11 +24,11 @@ const SuccessModal = ({ visible, title, message, buttonText, onClose }: SuccessM
             <Ionicons name="checkmark" size={40} color="#0066CC" />
           </View>
 
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+          <AppText style={styles.title}>{title}</AppText>
+          <AppText style={styles.message}>{message}</AppText>
 
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>{buttonText}</Text>
+            <AppText style={styles.buttonText}>{buttonText}</AppText>
           </TouchableOpacity>
         </View>
       </View>
