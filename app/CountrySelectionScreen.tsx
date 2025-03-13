@@ -80,7 +80,6 @@ type CountrySelectionScreenNavigationProp = StackNavigationProp<
   'CountrySelection'
 >;
 
-const navigation = useNavigation<CountrySelectionScreenNavigationProp>();
 
 interface Country {
   id: string;
@@ -99,6 +98,7 @@ const CountrySelectionScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const currentCountryId = route.params?.currentCountryId || 'es';
   const [hoveredCountry, setHoveredCountry] = useState<string>("");
+  const navigation = useNavigation<CountrySelectionScreenNavigationProp>();
 
   const filteredCountries = searchQuery
     ? countries.filter(country =>
